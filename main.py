@@ -4,13 +4,13 @@ import sys
 string = '''
 	HAI
 	I HAS A num1
-	I HAS A num2 ITZ 22
- 
+	I HAS A num2 ITZ num1
+
 	num1 R "sddf @#$%^&*s"" sdf"       
 
 	VISIBLE "Enter value for num2: "
 
-	GIMMEH num2		BTW getting input from user
+	GIMMEH num2
 
 	VISIBLE num1 "is num1"
 	VISIBLE num2 "is num2"
@@ -43,11 +43,11 @@ def getType(assign):
 			elif(assign[1] == "FAIL"):
 				val = False
 			elif(re.search(r"(?<=^\").*(?=\"\s*$)",assign[1])):		#YARN
-				val = re.findall(r"(?<=\").*(?=\")",assign[1])[0]
+				val = re.findall(r"(?<=^\").*(?=\"\s*$)",assign[1])[0]
 			elif(assign[1] in variables):			#variable
 				val = variables[assign[1]]
 			else:									#anything else
-				print("Invalid variable value for",assign[0])		#produces error message
+				print("Invalid value for",assign[0])		#produces error message
 				exit()								#Kill process
 	return val
 
@@ -55,7 +55,7 @@ def getType(assign):
 def checkValidVar(variable):
 	if not(re.match(r"^[\w\d]*$", variable)):
 		print("Invalid variable name", variable)
-		exit(0)
+		exit(1)
 
 def interpret(code):
 	for line in code:
@@ -63,12 +63,12 @@ def interpret(code):
 			assign = re.split(r"I HAS A ", line)[1]
 			if re.search(r"ITZ ",line):							##with value
 				assign = re.split(r" ITZ ", assign)
-
 				var = assign[0]
-				checkValidVar(var)								#check variable name validity
-
+				checkValidVar(var)
+				
 				variables[var] = getType(assign)				#assign value to variable
 			else:												#no value(NOOB)
+				checkValidVar(assign)
 				variables[assign] = None
 		
 		elif(re.search(r" R ",line)):							##assignment
@@ -79,9 +79,17 @@ def interpret(code):
 			else:
 				print("Unknown variable", var)
 				exit()
+
+		elif(re.search(r"VISIBLE ",line)):							##printing
+			printLine = re.split(r"VISIBLE ", line)[1]
+			
+			printStack = filter(None, re.split(r"[^\S\"]+|(\".*\")", printLine))
+			
+			for printVal in printStack:
+				print(getType(['IT', printVal]), end=" ")
+			print()												#reset print for next line
+
 		else:
 			continue
 
-
 interpret(code)
-print(variables)
