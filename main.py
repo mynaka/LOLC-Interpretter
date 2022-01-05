@@ -3,10 +3,10 @@ import sys
 
 string = '''
 	HAI
-	I HAS A num1 ITZ 3.14
-	I HAS A num2 ITZ num1
-
-	num1 R "sddfsdf"
+	I HAS A num1
+	I HAS A num2 ITZ 22
+ 
+	num1 R "sddf @#$%^&*s"" sdf"       
 
 	VISIBLE "Enter value for num2: "
 
@@ -42,27 +42,34 @@ def getType(assign):
 				val = True
 			elif(assign[1] == "FAIL"):
 				val = False
-			elif(re.search(r"^\".*\"$",assign[1])):	#YARN
-				val = assign[1]
+			elif(re.search(r"(?<=^\").*(?=\"\s*$)",assign[1])):		#YARN
+				val = re.findall(r"(?<=\").*(?=\")",assign[1])[0]
 			elif(assign[1] in variables):			#variable
 				val = variables[assign[1]]
 			else:									#anything else
-				print("Invalid Variable Value")		#produces error message
+				print("Invalid variable value for",assign[0])		#produces error message
 				exit()								#Kill process
 	return val
+
+##Check if variable is valid. Else, print error message and exit
+def checkValidVar(variable):
+	if not(re.match(r"^[\w\d]*$", variable)):
+		print("Invalid variable name", variable)
+		exit(0)
 
 def interpret(code):
 	for line in code:
 		if re.search(r"I HAS A ",line):							##variable declaration
+			assign = re.split(r"I HAS A ", line)[1]
 			if re.search(r"ITZ ",line):							##with value
-				assign = re.split(r"I HAS A ", line)[1]
 				assign = re.split(r" ITZ ", assign)
-				var = assign[0]
 
-				variables[var] = getType(assign)
+				var = assign[0]
+				checkValidVar(var)								#check variable name validity
+
+				variables[var] = getType(assign)				#assign value to variable
 			else:												#no value(NOOB)
-				var = re.split(r"I HAS A ", line)[1]
-				variables[var] = None
+				variables[assign] = None
 		
 		elif(re.search(r" R ",line)):							##assignment
 			assign = re.split(r" R ", line)
@@ -73,8 +80,8 @@ def interpret(code):
 				print("Unknown variable", var)
 				exit()
 		else:
-			print(line)
-
+			continue
 
 
 interpret(code)
+print(variables)
