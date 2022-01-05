@@ -4,7 +4,7 @@ import sys
 string = '''
 	HAI
 	I HAS A num1
-	I HAS A num2 ITZ num1
+	I HAS A num2 ITZ "asdf"
 
 	num1 R "sddf @#$%^&*s"" sdf"       
 
@@ -25,7 +25,7 @@ keywords = {
 
 ##dictionary for storing variables in the LOLCODE
 variables = {
-
+	'Implicit IT' : None
 }
 
 code = filter(None, re.split('\n|\t', string))
@@ -61,7 +61,7 @@ def interpret(code):
 	for line in code:
 		if re.search(r"I HAS A ",line):							##variable declaration
 			assign = re.split(r"I HAS A ", line)[1]
-			if re.search(r"ITZ ",line):							##with value
+			if re.search(r"ITZ ",line):							##with ITZ expression
 				assign = re.split(r" ITZ ", assign)
 				var = assign[0]
 				checkValidVar(var)
@@ -86,7 +86,12 @@ def interpret(code):
 			printStack = filter(None, re.split(r"[^\S\"]+|(\".*\")", printLine))
 			
 			for printVal in printStack:
-				print(getType(['IT', printVal]), end=" ")
+				result = getType(['IT', printVal])
+				if result == None:								#If data type to be printed is NOOB, call an error
+					print("Cannot cast NOOB")
+					exit()
+				else:
+					print(result, end=" ")
 			print()												#reset print for next line
 
 		else:
