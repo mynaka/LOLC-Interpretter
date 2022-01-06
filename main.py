@@ -2,10 +2,10 @@ import re
 
 string = '''
 	HAI
-	I HAS A num1 ITZ 123
-	I HAS A num2 ITZ 122
+	I HAS A num1
+	I HAS A num2 ITZ WIN
 
-	num2 IS NOW A YARN
+	num1 R MAEK num2 YARN
 	
 	VISIBLE "Enter value for num2: "
 
@@ -29,6 +29,8 @@ variables = {
 
 code = filter(None, re.split('\n|\t', string))
 
+def procExpression(expr):
+	print(re.split(r" OF | AN ", expr))
 
 ##Typecast variable x into cast data type
 def typeCast(x, cast):
@@ -43,14 +45,12 @@ def typeCast(x, cast):
 			val = float(variables[x][0])
 			varType = "NUMBAR"
 		elif cast == "YARN":
-			if variables[x][0] == True:			##From TROOF
-				val = "WIN"
-			elif variables[x][0] == False:
-				val = "FAIL"
+			if variables[x][1] == "TROOF" or variables[x][1] == "NOOB":			##From TROOF
+				raise Exception
 			else:
-				if str(variables[x][1]) == "NUMBAR":
+				if str(variables[x][1]) == "NUMBAR":	#From NUMBAR to YARN
 					val = str(round(variables[x][0],2))
-				else:
+				else:									#Other Data types
 					val = str(variables[x][0])
 			varType = "YARN"
 		elif cast == "TROOF":
@@ -99,7 +99,7 @@ def checkValidVar(variable):
 
 def interpret(code):
 	for line in code:
-		if re.search(r"I HAS A ",line):							##variable declaration
+		if re.search(r"I HAS A ",line):							#variable declaration
 			assign = re.split(r"I HAS A ", line)[1]
 			if re.search(r"ITZ ",line):							##with ITZ expression
 				assign = re.split(r" ITZ ", assign)
@@ -115,7 +115,12 @@ def interpret(code):
 			assign = re.split(r" R ", line)
 			var = assign[0]
 			if var in variables:								#check if variable exists, if not, an error occurs
-				variables[var] = getType(assign)
+				if re.search(r"MAEK | ",assign[1]):				#recast variable
+					castVar = re.split(r"MAEK | ",assign[1])[1]
+					castType = re.split(r"MAEK | ",assign[1])[2]
+					variables[var] = typeCast(castVar, castType)	#typeCast and reassign
+				else:											#assign variable
+					variables[var] = getType(assign)
 			else:
 				print("Unknown variable", var)
 				exit()
@@ -128,12 +133,11 @@ def interpret(code):
 			for printVal in printStack:
 				result = getType([printVal, printVal])[0]
 				if result == None:								#If data type to be printed is NOOB, call an error
-					print("Cannot cast NOOB")
+					print("Cannot cast NOOB to YARN")
 					exit()
-				elif result == True:							#TROOF output
-					print("WIN", end=" ")
-				elif result == False:
-					print("FAIL", end=" ")
+				elif type(result) == bool:
+					print("Cannot cast TROOF to YARN")
+					exit()
 				else:
 					print(result, end=" ")
 			print()												#reset print for next line
@@ -155,3 +159,4 @@ def interpret(code):
 
 interpret(code)
 print(variables)
+procExpression("ALL OF flag AN anotherflag AN flag3 AN flag4")
