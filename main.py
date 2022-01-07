@@ -5,11 +5,11 @@ string = '''
 	I HAS A num1
 	I HAS A num2 ITZ 123456
 
-	num1 R MAEK num2 NUMBAR
+	num2 R MAEK num2 NUMBAR
 	
-	VISIBLE "Enter value for num2: "
+	VISIBLE "Enter value for num1: "
 
-	GIMMEH num2
+	GIMMEH num1
 
 	VISIBLE num1 "is num1"
 	VISIBLE num2 "is num2"
@@ -94,6 +94,7 @@ def typeCast(x, cast):
 	return [val, varType]
 
 ##Find value type and returns apprropriately typecasted value
+##Input: 2-element list containing variable name and value as a string
 def getType(assign):
 	val = None
 	varType = "NOOB"
@@ -183,6 +184,12 @@ def interpret(code):
 
 			variables[var] = typeCast(var, cast)
 
+		elif(re.search(r"GIMMEH",line)):
+			var = list(filter(None, re.split(r"GIMMEH|\s", line)))[0]
+			value = "\""+input()+"\""
+
+			variables[var] = getType([var, value])
+	
 		else:
 			continue
 
