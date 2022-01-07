@@ -3,9 +3,9 @@ import re
 string = '''
 	HAI
 	I HAS A num1
-	I HAS A num2 ITZ WIN
+	I HAS A num2 ITZ 123456
 
-	num1 R MAEK num2 YARN
+	num1 R MAEK num2 NUMBAR
 	
 	VISIBLE "Enter value for num2: "
 
@@ -30,7 +30,37 @@ variables = {
 code = filter(None, re.split('\n|\t', string))
 
 def procExpression(expr):
-	print(re.split(r" OF | AN ", expr))
+	op = list(filter(None, re.split(r" OF |\s|AN", expr)))
+	operandStack = []
+	operatorStack = []
+	arithmeticOps = ["SUM", "DIFF", "PRODUKT", "QUOSHUNT", "MOD"]
+
+	for i in op:
+		if i in arithmeticOps:
+			operatorStack.append(i)
+		else:
+			try:
+				operandStack.append(int(i))
+			except:
+				operandStack.append(float(i))
+		
+		if len(operandStack) == 2:
+			operator = operatorStack[-1]
+
+			if operator == "SUM":
+				operandStack[0] = operandStack[0] + operandStack[1]
+			elif operator == "DIFF":
+				operandStack[0] = operandStack[0] - operandStack[1]
+			elif operator == "PRODUKT":
+				operandStack[0] = operandStack[0] * operandStack[1]
+			elif operator == "QUOSHUNT":
+				operandStack[0] = operandStack[0] / operandStack[1]
+			elif operator == "MOD":
+				operandStack[0] = operandStack[0] % operandStack[1]
+			operatorStack.pop()
+			operandStack.pop()
+
+	print(operandStack[0])
 
 ##Typecast variable x into cast data type
 def typeCast(x, cast):
@@ -45,10 +75,10 @@ def typeCast(x, cast):
 			val = float(variables[x][0])
 			varType = "NUMBAR"
 		elif cast == "YARN":
-			if variables[x][1] == "TROOF" or variables[x][1] == "NOOB":			##From TROOF
+			if variables[x][1] == "TROOF" or variables[x][1] == "NOOB":			##From TROOF or NOOB
 				raise Exception
 			else:
-				if str(variables[x][1]) == "NUMBAR":	#From NUMBAR to YARN
+				if str(variables[x][1]) == "NUMBAR":	#From NUMBAR to YARN, round to two decimals
 					val = str(round(variables[x][0],2))
 				else:									#Other Data types
 					val = str(variables[x][0])
@@ -65,6 +95,7 @@ def typeCast(x, cast):
 
 ##Find value type and returns apprropriately typecasted value
 def getType(assign):
+	val = None
 	varType = "NOOB"
 	try: 											#Identify data type
 		val = int(assign[1])						#NUMBR
@@ -85,10 +116,12 @@ def getType(assign):
 				varType = "YARN"
 			elif(assign[1] in variables):			#variable
 				val = variables[assign[1]][0]
+				varType = variables[assign[1]][1]
 			else:									#anything else
 				print("Invalid value for",assign[0])		#produces error message
 				exit()								#Kill process
 	res = [val, varType]
+	#print(res)
 	return res
 
 ##Check if variable is valid. Else, print error message and exit
@@ -131,16 +164,12 @@ def interpret(code):
 			printStack = filter(None, re.split(r"[^\S\"]+|(\".*\")", printLine))
 			
 			for printVal in printStack:
-				result = getType([printVal, printVal])[0]
-				if result == None:								#If data type to be printed is NOOB, call an error
-					print("Cannot cast NOOB to YARN")
-					exit()
-				elif type(result) == bool:
-					print("Cannot cast TROOF to YARN")
-					exit()
-				else:
-					print(result, end=" ")
+				variables["Implicit IT"] = getType(["Implicit IT", printVal])
+				result = typeCast("Implicit IT", "YARN")
+				print(result[0], end="")
 			print()												#reset print for next line
+
+			variables["Implicit IT"] = [None, "NOOB"]			#reset value of IT
 
 		elif(re.search(r" IS NOW A ",line)):							##typecasting
 			var = re.split(r" IS NOW A ", line)[0]
@@ -158,5 +187,4 @@ def interpret(code):
 			continue
 
 interpret(code)
-print(variables)
-procExpression("ALL OF flag AN anotherflag AN flag3 AN flag4")
+procExpression("SUM OF PRODUKT OF SUM OF 3 AN 4 AN 2 AN 1")
