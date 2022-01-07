@@ -8,7 +8,7 @@ string = '''
 	VISIBLE "Enter value for num1: "
 
 	GIMMEH num1
-	num1 R MAEK num1 NUMBAR
+	num1 IS NOW A NUMBAR
 	VISIBLE num1 " is num1"
 	VISIBLE num2 " is num2"
 
@@ -32,30 +32,38 @@ def isOperator(c):
 
 def procExpression(expr):
 	op = list(filter(None, re.split(r" OF |\s|AN", expr)))
-	res = ""							#string that will contain the prefix stack
+	res = []							#string that will contain the prefix stack
 
 	for i in range(len(op)):	
 		if op[i] == "SUM":				#check if keyword is operator
-			res+= "+"					#change to equivalent symbol
+			res.append("+")					#change to equivalent symbol
 		elif op[i] == "DIFF":
-			res+= "-"
+			res.append("-")
 		elif op[i] == "PRODUKT":
-			res+= "*"
+			res.append("*")
 		elif op[i] == "QUOSHUNT":
-			res+= "/"
+			res.append("/")
 		elif op[i] == "MOD":
-			res+= "%"
+			res.append("%")
 		else:
-			res+=op[i]
-
+			try:
+				float(op[i])
+				res.append(op[i])			#operator is literal
+			except:					#operator is either a variable or is invalid
+				try:
+					float(variables[op[i]][0])			#This checks proper data type and variable validity at the same time
+					res.append(str(variables[op[i]][0]))
+				except:
+					print("Invalid operand", op[i])
+					exit()
 	stack = []
-     
+	print(res)
     #convert prefix to infix
 	stackLength = len(res) - 1
 	while stackLength >= 0:
 		if isOperator(res[stackLength]):	# symbol is an operator
-			str = "(" + stack.pop() + res[stackLength] + stack.pop() + ")"	#added parentheses to make evaluation easier
-			stack.append(str)
+			strExpr = "(" + stack.pop() + res[stackLength] + stack.pop() + ")"	#added parentheses to make evaluation easier
+			stack.append(strExpr)
 		else:
 			stack.append(res[stackLength])
 		stackLength-=1
@@ -193,4 +201,4 @@ def interpret(code):
 			continue
 
 interpret(code)
-procExpression("SUM OF PRODUKT OF SUM OF 3 AN PRODUKT OF 5 AN MOD OF 3 AN 2 AN 3 AN 1")
+procExpression("SUM OF PRODUKT OF SUM OF 3 AN PRODUKT OF num1 AN MOD OF 3 AN 2 AN 3 AN 1")
