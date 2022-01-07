@@ -4,15 +4,13 @@ string = '''
 	HAI
 	I HAS A num1
 	I HAS A num2 ITZ 123456
-
-	num2 R MAEK num2 NUMBAR
 	
 	VISIBLE "Enter value for num1: "
 
 	GIMMEH num1
-
-	VISIBLE num1 "is num1"
-	VISIBLE num2 "is num2"
+	num1 R MAEK num1 NUMBAR
+	VISIBLE num1 " is num1"
+	VISIBLE num2 " is num2"
 
 	KTHXBYE
 '''
@@ -29,38 +27,39 @@ variables = {
 
 code = filter(None, re.split('\n|\t', string))
 
+def isOperator(c):
+    return c == "*" or c == "+" or c == "-" or c == "/" or c == "%"
+
 def procExpression(expr):
 	op = list(filter(None, re.split(r" OF |\s|AN", expr)))
-	operandStack = []
-	operatorStack = []
-	arithmeticOps = ["SUM", "DIFF", "PRODUKT", "QUOSHUNT", "MOD"]
+	res = ""							#string that will contain the prefix stack
 
-	for i in op:
-		if i in arithmeticOps:
-			operatorStack.append(i)
+	for i in range(len(op)):	
+		if op[i] == "SUM":				#check if keyword is operator
+			res+= "+"					#change to equivalent symbol
+		elif op[i] == "DIFF":
+			res+= "-"
+		elif op[i] == "PRODUKT":
+			res+= "*"
+		elif op[i] == "QUOSHUNT":
+			res+= "/"
+		elif op[i] == "MOD":
+			res+= "%"
 		else:
-			try:
-				operandStack.append(int(i))
-			except:
-				operandStack.append(float(i))
-		
-		if len(operandStack) == 2:
-			operator = operatorStack[-1]
+			res+=op[i]
 
-			if operator == "SUM":
-				operandStack[0] = operandStack[0] + operandStack[1]
-			elif operator == "DIFF":
-				operandStack[0] = operandStack[0] - operandStack[1]
-			elif operator == "PRODUKT":
-				operandStack[0] = operandStack[0] * operandStack[1]
-			elif operator == "QUOSHUNT":
-				operandStack[0] = operandStack[0] / operandStack[1]
-			elif operator == "MOD":
-				operandStack[0] = operandStack[0] % operandStack[1]
-			operatorStack.pop()
-			operandStack.pop()
-
-	print(operandStack[0])
+	stack = []
+     
+    #convert prefix to infix
+	stackLength = len(res) - 1
+	while stackLength >= 0:
+		if isOperator(res[stackLength]):	# symbol is an operator
+			str = "(" + stack.pop() + res[stackLength] + stack.pop() + ")"	#added parentheses to make evaluation easier
+			stack.append(str)
+		else:
+			stack.append(res[stackLength])
+		stackLength-=1
+	print(eval(stack.pop()))	#evaluate
 
 ##Typecast variable x into cast data type
 def typeCast(x, cast):
@@ -194,4 +193,4 @@ def interpret(code):
 			continue
 
 interpret(code)
-procExpression("SUM OF PRODUKT OF SUM OF 3 AN 4 AN 2 AN 1")
+procExpression("SUM OF PRODUKT OF SUM OF 3 AN PRODUKT OF 5 AN MOD OF 3 AN 2 AN 3 AN 1")
