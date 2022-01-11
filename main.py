@@ -8,7 +8,7 @@ string = '''
 	VISIBLE "Enter value for num1: "
 
 	GIMMEH num1
-	num1 IS NOW A NUMBAR
+
 	VISIBLE num1 " is num1"
 	VISIBLE num2 " is num2"
 
@@ -169,8 +169,8 @@ def interpret(code):
 		elif(re.search(r"VISIBLE ",line)):							##printing
 			printLine = re.split(r"VISIBLE ", line)[1]
 			
-			printStack = filter(None, re.split(r"[^\S\"]+|(\".*\")", printLine))
-			
+			printStack = list(filter(None,re.split(r"[^\S\"]+|(\"[^\"]*\")", printLine)))
+			print(printStack)
 			for printVal in printStack:
 				variables["Implicit IT"] = getType(["Implicit IT", printVal])
 				result = typeCast("Implicit IT", "YARN")
