@@ -3,12 +3,11 @@ import re
 string = '''
 	HAI
 	I HAS A num1
-	I HAS A num2 ITZ 123456
 	
 	VISIBLE "Enter value for num1: "
 
 	GIMMEH num1
-
+	I HAS A num2 ITZ SUM OF PRODUKT OF SUM OF 3.5 AN PRODUKT OF num1 AN SUM OF 1.5 AN 2 AN 3 AN 1
 	VISIBLE num1 " is num1"
 	VISIBLE num2 " is num2"
 
@@ -28,46 +27,68 @@ variables = {
 code = filter(None, re.split('\n|\t', string))
 
 def isOperator(c):
-    return c == "*" or c == "+" or c == "-" or c == "/" or c == "%"
+    return c == "*" or c == "+" or c == "-" or c == "/" or c == "%" or c == " and " or c == " or " or c == "^"
+
+def isNot(c):
+	return c == "!"
 
 def procExpression(expr):
 	op = list(filter(None, re.split(r" OF |\s|AN", expr)))
 	res = []							#string that will contain the prefix stack
-
 	for i in range(len(op)):	
 		if op[i] == "SUM":				#check if keyword is operator
 			res.append("+")					#change to equivalent symbol
 		elif op[i] == "DIFF":
-			res.append("-")
+			res.append("-")   
 		elif op[i] == "PRODUKT":
 			res.append("*")
 		elif op[i] == "QUOSHUNT":
 			res.append("/")
 		elif op[i] == "MOD":
 			res.append("%")
+		elif op[i] == "BOTH":
+			res.append(" and ")
+		elif op[i] == "EITHER":
+			res.append(" or ")
+		elif op[i] == "WON":
+			res.append("^")
+		elif op[i] == "NOT":
+			res.append("!")
 		else:
 			try:
-				float(op[i])
-				res.append(op[i])			#operator is literal
+				float(op[i])			#operand is numeric
+				res.append(op[i])			
 			except:					#operator is either a variable or is invalid
 				try:
 					float(variables[op[i]][0])			#This checks proper data type and variable validity at the same time
 					res.append(str(variables[op[i]][0]))
 				except:
-					print("Invalid operand", op[i])
-					exit()
+					if(op[i] == "WIN"):
+						res.append("True")
+					elif(op[i] == "FAIL"):
+						res.append("False")
+					else:
+						raise Exception					#Will raise exception causing an invalid value exception
 	stack = []
-	print(res)
     #convert prefix to infix
 	stackLength = len(res) - 1
 	while stackLength >= 0:
 		if isOperator(res[stackLength]):	# symbol is an operator
 			strExpr = "(" + stack.pop() + res[stackLength] + stack.pop() + ")"	#added parentheses to make evaluation easier
 			stack.append(strExpr)
+		elif isNot(res[stackLength]):
+			strExpr = "(not " + stack.pop() + ")"
+			stack.append(strExpr)
 		else:
 			stack.append(res[stackLength])
 		stackLength-=1
-	print(eval(stack.pop()))	#evaluate
+	result = eval(stack.pop())	#evaluate
+	if result == True:
+		return "WIN"
+	elif result == False:
+		return "FAIL"
+	else:
+		return result
 
 ##Typecast variable x into cast data type
 def typeCast(x, cast):
@@ -96,6 +117,7 @@ def typeCast(x, cast):
 		else:
 			raise Exception
 	except Exception:
+		print(variables[x])
 		print("Cannot cast", x, "to", cast)
 		exit()
 	return [val, varType]
@@ -126,10 +148,20 @@ def getType(assign):
 				val = variables[assign[1]][0]
 				varType = variables[assign[1]][1]
 			else:									#anything else
-				print("Invalid value for",assign[0])		#produces error message
-				exit()								#Kill process
+				try:
+					val = procExpression(assign[1])
+					
+					if type(val) == int:
+						varType = "NUMBR"
+					elif type(val) == float:
+						varType = "NUMBAR"
+					else:
+						varType = "TROOF"
+				except:
+					print(assign)
+					print("Invalid value for",assign[0])		#produces error message
+					exit()								#Kill process
 	res = [val, varType]
-	#print(res)
 	return res
 
 ##Check if variable is valid. Else, print error message and exit
@@ -170,7 +202,6 @@ def interpret(code):
 			printLine = re.split(r"VISIBLE ", line)[1]
 			
 			printStack = list(filter(None,re.split(r"[^\S\"]+|(\"[^\"]*\")", printLine)))
-			print(printStack)
 			for printVal in printStack:
 				variables["Implicit IT"] = getType(["Implicit IT", printVal])
 				result = typeCast("Implicit IT", "YARN")
@@ -201,4 +232,4 @@ def interpret(code):
 			continue
 
 interpret(code)
-procExpression("SUM OF PRODUKT OF SUM OF 3 AN PRODUKT OF num1 AN MOD OF 3 AN 2 AN 3 AN 1")
+print(procExpression("BOTH OF WIN AN NOT EITHER OF FAIL AN FAIL"))
