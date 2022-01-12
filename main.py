@@ -2,15 +2,21 @@ import re
 
 string = '''
 	HAI
-	I HAS A num1
-	
-	VISIBLE "Enter value for num1: "
+		I HAS A flag ITZ 5
+		I HAS A anotherflag ITZ SUM OF 5 AN 5
+		
+		VISIBLE SUM OF flag AN anotherflag "nice" "    hooh haha"
+		VISIBLE DIFF OF flag AN anotherflag
+		flag R SUM OF 2 AN 6
+		VISIBLE PRODUKT OF flag AN anotherflag
+		VISIBLE QUOSHUNT OF flag AN anotherflag
+		
+		I HAS A flag5 ITZ 4
+		VISIBLE flag5 " hihi" "  he flag  he " anotherflag flag
+		VISIBLE flag " " anotherflag
 
-	GIMMEH num1
-	I HAS A num2 ITZ SUM OF PRODUKT OF SUM OF 3.5 AN PRODUKT OF num1 AN SUM OF 1.5 AN 2 AN 3 AN 1
-	VISIBLE num1 " is num1"
-	VISIBLE num2 " is num2"
-
+		flag R MAEK flag NUMBAR
+		VISIBLE "flag is now " flag
 	KTHXBYE
 '''
 
@@ -31,6 +37,18 @@ def isOperator(c):
 
 def isNot(c):
 	return c == "!"
+
+def isExpression(c):
+	return re.search("SUM|DIFF|PRODUKT|QUOSHUNT|MOD|BOTH|EITHER|WON|NOT", c)
+
+def isLiteral(c):
+	if not re.search("\"", c):
+		try:
+			float(c)
+			return True
+		except: return False
+	else:
+		return True
 
 def procExpression(expr):
 	op = list(filter(None, re.split(r" OF |\s|AN", expr)))
@@ -117,7 +135,6 @@ def typeCast(x, cast):
 		else:
 			raise Exception
 	except Exception:
-		print(variables[x])
 		print("Cannot cast", x, "to", cast)
 		exit()
 	return [val, varType]
@@ -150,7 +167,6 @@ def getType(assign):
 			else:									#anything else
 				try:
 					val = procExpression(assign[1])
-					
 					if type(val) == int:
 						varType = "NUMBR"
 					elif type(val) == float:
@@ -158,7 +174,6 @@ def getType(assign):
 					else:
 						varType = "TROOF"
 				except:
-					print(assign)
 					print("Invalid value for",assign[0])		#produces error message
 					exit()								#Kill process
 	res = [val, varType]
@@ -188,7 +203,7 @@ def interpret(code):
 			assign = re.split(r" R ", line)
 			var = assign[0]
 			if var in variables:								#check if variable exists, if not, an error occurs
-				if re.search(r"MAEK | ",assign[1]):				#recast variable
+				if re.search(r"MAEK | ",assign[1]) and not isExpression(assign[1]):				#recast variable
 					castVar = re.split(r"MAEK | ",assign[1])[1]
 					castType = re.split(r"MAEK | ",assign[1])[2]
 					variables[var] = typeCast(castVar, castType)	#typeCast and reassign
@@ -201,11 +216,22 @@ def interpret(code):
 		elif(re.search(r"VISIBLE ",line)):							##printing
 			printLine = re.split(r"VISIBLE ", line)[1]
 			
-			printStack = list(filter(None,re.split(r"[^\S\"]+|(\"[^\"]*\")", printLine)))
+			printStack = list(filter(None,re.split(r"(\"[^\"]*\")", printLine)))
+			try:
+				printStack.remove(' ')		#junk parts in the stack may cause errors, must remove
+			except:
+				pass
 			for printVal in printStack:
-				variables["Implicit IT"] = getType(["Implicit IT", printVal])
-				result = typeCast("Implicit IT", "YARN")
-				print(result[0], end="")
+				if isLiteral(printVal) or isExpression(printVal):							#Literal or Expression
+					variables["Implicit IT"] = getType(["Implicit IT", printVal])			#will assign string to IT
+					result = typeCast("Implicit IT", "YARN")								#typecast to YARN
+					print(result[0], end="")
+				else:																		#Variable/s
+					varia = filter(None,printVal.split(" "))
+					for variable in varia:													#do the same but will take into account
+						variables["Implicit IT"] = getType(["Implicit IT", variable])		#successive variables
+						result = typeCast("Implicit IT", "YARN")								
+						print(result[0], end="")
 			print()												#reset print for next line
 
 			variables["Implicit IT"] = [None, "NOOB"]			#reset value of IT
